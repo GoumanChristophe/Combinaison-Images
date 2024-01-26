@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Combinaison d'images</title>
+</head>
+<body>
+    <h1>Combinaison d'images</h1>
+
+    <form action="/combine" method="POST" enctype="multipart/form-data">
+        <input type="file" name="image" accept=".png, .jpg, .jpeg" multiple>
+        <br>
+        <input type="submit" value="Combinez les images">
+    </form>
+
+    {% if image_path %}
+    <img src="{{ image_path }}" alt="Image combinée">
+    {% endif %}
+</body>
+</html>
