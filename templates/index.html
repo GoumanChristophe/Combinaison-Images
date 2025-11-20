@@ -340,6 +340,32 @@
             box-shadow: none;
         }
 
+        .reset-btn {
+            padding: 18px 30px;
+            border: none;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+            color: white;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            white-space: nowrap;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 107, 107, 0.6);
+            background: linear-gradient(135deg, #ee5a6f 0%, #ff6b6b 100%);
+        }
+
+        .reset-btn:active {
+            transform: translateY(0);
+        }
+
         .preview {
             margin-top: 40px;
             padding-top: 40px;
@@ -421,6 +447,25 @@
             .upload-area {
                 padding: 40px 20px;
             }
+
+            .reset-btn {
+                padding: 16px 20px;
+                font-size: 1em;
+            }
+
+            .submit-btn {
+                font-size: 1em;
+            }
+
+            /* Empiler les boutons verticalement sur mobile */
+            .content > form > div[style*="display: flex"] {
+                flex-direction: column !important;
+                gap: 10px !important;
+            }
+
+            .content > form > div[style*="display: flex"] .submit-btn {
+                margin-top: 0 !important;
+            }
         }
     </style>
 </head>
@@ -430,6 +475,9 @@
         <div class="header">
             <h1>🎨 Combinaison d'Images</h1>
             <p>Créez des grilles d'images en toute simplicité</p>
+            <p style="font-size: 0.9em; opacity: 0.85; margin-top: 10px;">
+                ⏱️ Arrêt automatique après 5 minutes d'inactivité
+            </p>
         </div>
 
         <div class="content">
@@ -467,9 +515,14 @@
                     </div>
                 </div>
 
-                <button type="submit" class="submit-btn" id="submitBtn" disabled>
-                    ✨ Combiner les images
-                </button>
+                <div style="display: flex; gap: 15px; margin-top: 30px;">
+                    <button type="submit" class="submit-btn" id="submitBtn" disabled style="flex: 1; margin-top: 0;">
+                        ✨ Combiner les images
+                    </button>
+                    <button type="button" class="reset-btn" id="resetBtn" onclick="resetForm()">
+                        🔄 Recommencer
+                    </button>
+                </div>
             </form>
 
             <div class="loading" id="loading">
@@ -480,7 +533,7 @@
             {% if image_path %}
             <div class="preview">
                 <h2>✅ Résultat</h2>
-                <img src="{{ image_path }}" alt="Image combinée" class="preview-image">
+                <img src="{{ image_path }}?t={{ cache_buster }}" alt="Image combinée" class="preview-image">
                 <div style="text-align: center;">
                     <a href="{{ image_path }}" download="image_combinee.png" class="download-btn">
                         📥 Télécharger l'image
@@ -500,6 +553,12 @@
         const columnsSlider = document.getElementById('columns');
         const columnsValue = document.getElementById('columnsValue');
         const gridPreview = document.querySelector('.grid-preview');
+
+        // Fonction pour reset et recommencer
+        function resetForm() {
+            // Recharger la page pour un reset complet
+            window.location.reload();
+        }
 
         // Gestion du slider de colonnes
         columnsSlider.addEventListener('input', function(e) {
@@ -540,6 +599,22 @@
                     `;
                     fileList.appendChild(fileItem);
                 });
+                
+                // Ajuster le max du slider selon le nombre d'images
+                const currentColumns = parseInt(columnsSlider.value);
+                if (currentColumns > files.length) {
+                    columnsSlider.value = files.length;
+                    columnsValue.textContent = files.length;
+                    updateGridPreview(files.length);
+                }
+                
+                // Ajouter un message si trop de colonnes
+                if (files.length < 15) {
+                    const infoMessage = document.createElement('p');
+                    infoMessage.style.cssText = 'margin-top: 10px; color: #667eea; font-size: 0.9em; text-align: center;';
+                    infoMessage.innerHTML = `💡 Maximum recommandé: ${files.length} colonnes pour ${files.length} images`;
+                    fileList.appendChild(infoMessage);
+                }
                 
                 submitBtn.disabled = false;
             } else {
